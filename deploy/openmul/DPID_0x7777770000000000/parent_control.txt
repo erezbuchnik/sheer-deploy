@@ -1,0 +1,49 @@
+
+# This application allow/drop traffic based on source IP and destination IP
+# In this example traffic with source IP 1.1.1.1 destination IP 2.2.2.2 drop, source IP 3.3.3.1 destination IP 3.3.2.2 editing and forward to port 2, all other traffic forward to port 5
+
+enable
+configure terminal
+mul-conf
+
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos *  dport * sport * in-port 4 table 0 
+flow-priority 100
+instruction-goto 1
+commit
+
+
+# ingress untagged
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos *  dport * sport * in-port * table 1 
+flow-priority 100
+instruction-goto 23
+commit
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 1.1.1.1/32 sip 2.2.2.2/32 proto * tos * dport * sport * in-port * table 23
+flow-priority 101
+instruction-apply
+action-add drop
+action-list-end
+commit
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 3.3.3.1/32 sip 3.3.2.2/32 proto * tos * dport * sport * in-port * table 23
+flow-priority 3
+instruction-apply 
+action-add push-vlan-header 
+action-add set-vlan-id 200
+action-list-end 
+ 
+instruction-write 
+action-add push-svlan-header 
+action-add set-vlan-id 100 
+action-add output 2 
+action-list-end 
+commit 
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port * table 23
+flow-priority 2
+instruction-apply
+action-add output 5
+action-list-end
+commit
+
+

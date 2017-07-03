@@ -1,0 +1,10 @@
+#!/bin/bash
+set -x
+
+deploy_framework_dir=../../deploy
+
+source ${deploy_framework_dir}/do_deploy.sh ./deploy_cfg.json
+
+set +x
+
+

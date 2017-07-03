@@ -1,0 +1,62 @@
+
+# The following command lines create flow from ingress port 3, 
+# create IP interface 1.1.1.1 and local MAC 00:11:22:33:44:55. Send packets to controller
+# Create group that change the source/destination MAC and decrement the TTL, send the traffic to 
+# Create subnet dip 1.1.1.1/30, and assign to group 1
+
+enable
+configure terminal
+mul-conf
+
+# create flow ingress port 3
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos *  dport * sport * in-port 3 table 0 
+flow-priority 100
+instruction-goto 1
+commit
+
+
+# IP packet go to table 14
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos *  dport * sport * in-port * table 1 
+flow-priority 100
+instruction-goto 14
+commit
+
+# IP interface 1.1.1.1 send packet to controller ( IP address of router)
+of-flow add switch 0x7777770000000000 smac * dmac 00:11:22:33:44:55  eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 1.1.1.1/32 sip * proto * tos *  dport * sport * in-port * table 14 
+flow-priority 101
+instruction-apply
+action-add output controller
+action-list-end
+commit
+
+# IP interface ARP packets send packet to controller
+of-flow add switch 0x7777770000000000 smac * dmac 00:11:22:33:44:55  eth-type 0x806 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 1.1.1.1/32 sip * proto * tos *  dport * sport * in-port * table 14 
+flow-priority 102
+instruction-apply
+action-add output controller
+action-list-end
+commit
+
+#create group - replace the source mac , destination mac , decrement the TTL
+of-group add switch 0x7777770000000000 group 1 type all
+action-add set-dmac 00:11:22:33:44:56
+action-add set-smac 00:11:22:33:44:55
+action-add dec-nw-ttl
+action-add output 1
+commit-group
+
+
+# filter destination MAC and destination IP - forward to group 1
+of-flow add switch 0x7777770000000000 smac * dmac 00:11:22:33:44:55  eth-type 0x800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 1.1.1.1/30 sip * proto * tos *  dport * sport * in-port * table 14 
+flow-priority 100
+instruction-apply
+action-add group-id 1
+action-list-end
+commit
+
+
+show of-flow switch 0x7777770000000000 table 0
+show of-flow switch 0x7777770000000000 table 1
+show of-flow switch 0x7777770000000000 table 14
+
+

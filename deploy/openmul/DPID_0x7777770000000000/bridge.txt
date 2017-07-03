@@ -1,0 +1,82 @@
+
+enable
+configure terminal
+mul-conf
+
+#create metering
+of-meter add switch 0x7777770000000000 meter-id 1 meter-type kbps burst yes stats yes
+meter-band drop rate 150000 burst-size 100
+commit-meter
+
+#create metering
+of-meter add switch 0x7777770000000000 meter-id 2 meter-type kbps burst yes stats yes
+meter-band drop rate 100000 burst-size 100
+commit-meter
+
+
+exit
+exit
+show of-meter switch 0x7777770000000000
+show of-flow switch 0x7777770000000000
+configure terminal
+mul-conf
+
+
+# create ingress port 1 and assign meter 1, go to table 1(ingress VLAN table)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 1 table 0 
+flow-priority 100
+instruction-goto 22
+instruction-meter 1
+commit
+
+# create ingress port 2 , go to table 1(ingress VLAN table)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 2 table 0 
+flow-priority 101
+instruction-goto 1
+commit
+
+# create ingress port 3, go to table 1(ingress VLAN table)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 3 table 0 
+flow-priority 102
+instruction-goto 1
+commit
+
+# create ingress port 4, go to table 1(ingress VLAN table)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 4 table 0 
+flow-priority 103
+instruction-goto 1
+commit
+
+
+exit
+exit
+show of-meter switch 0x7777770000000000
+show of-flow switch 0x7777770000000000
+configure terminal
+mul-conf
+
+
+# create ingress VLAN assign meter 2 , TPID 0x8100 VLAN 300 , go to table 22 (VLAN bridging)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type 0x8100 vid 300 vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port * table 1 
+flow-priority 10
+instruction-goto 22
+instruction-meter 2
+commit
+
+# create VLAN bridging , output normal (bridging)
+of-flow add switch 0x7777770000000000 smac * dmac *  eth-type 0x8100 vid 300 vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port * table 22 
+flow-priority 110
+instruction-apply
+action-add output normal
+action-list-end
+commit
+
+
+exit
+exit
+show of-meter switch 0x7777770000000000
+show of-flow switch 0x7777770000000000
+configure terminal
+mul-conf
+
+

@@ -1,0 +1,69 @@
+
+#	create 2 ports
+#	interface 2 is local interface, interface 3 connect to public network
+#	local interface is 192.168.1.1/24 , ip address of the local PC is 192.168.1.2 , the public IP of the box is 10.100.1.1
+#	user request to connect to 132.11.12.23
+#	traffic flow user to network - ip packet received from user 192.168.1.1.2 to 10.100.1.1 , Enet box replace the src/dest MAC and replace the source IP to 10.100.1.1
+#	traffic flow from network to user - ip packet received with destination ip 10.100.1.1 , Enet box replase the src/dest mac and replace the DA ip to 192.168.1.1.2
+
+enable
+configure terminal
+mul-conf
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 2  table 0
+flow-priority 100
+instruction-goto 1
+commit
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type * vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port 3 table 0
+flow-priority 101
+instruction-goto 1
+commit
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x0800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip * proto * tos * dport * sport * in-port *  table 1
+flow-priority 1000
+instruction-goto 16
+commit
+
+
+of-meter add switch 0x7777770000000000 meter-id 1 meter-type kbps burst yes stats yes
+meter-band drop rate 100000 burst-size 10000
+commit-meter
+
+of-group add switch 0x7777770000000000 group 1 type indirect
+action-add set-dmac 00:00:00:00:00:03
+action-add set-smac 00:00:00:00:00:02
+action-add nw-saddr 10.100.1.1
+commit-group
+
+of-group add switch 0x7777770000000000 group 2 type indirect
+action-add set-dmac 00:00:00:00:00:01
+action-add set-smac 00:00:00:00:00:02
+action-add nw-daddr 192.168.1.2
+commit-group
+
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x0800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip * sip 192.168.1.2/32 proto * tos * dport * sport * in-port 2 table 16
+flow-priority 1000
+instruction-write
+action-add group-id 1
+action-add output 3
+action-list-end
+instruction-meter 1
+commit
+
+of-flow add switch 0x7777770000000000 smac * dmac * eth-type 0x0800 vid * vlan-pcp * mpls-label * mpls-tc * mpls-bos * dip 10.100.1.1/32 sip * proto * tos * dport * sport * in-port 3 table 16
+flow-priority 1001
+instruction-write
+action-add group-id 2
+action-add output 2
+action-list-end
+instruction-meter 1
+commit
+
+
+
+do show of-meter switch 0x7777770000000000
+do show of-group switch 0x7777770000000000
+do show of-flow switch 0x7777770000000000
+
+
