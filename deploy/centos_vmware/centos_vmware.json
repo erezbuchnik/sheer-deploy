@@ -1,0 +1,20 @@
+
+{
+
+
+"centos_vmware_img": {
+
+	"credits": [
+		"http://1stopit.blogspot.co.il/2015/01/centos-7-minimal-on-vmware-player.html?m=1",
+		"http://mirror.nsc.liu.se/centos-store/7.0.1406/isos/x86_64/CentOS-7.0-1406-x86_64-Minimal.iso",
+		"https://my.vmware.com/web/vmware/free#desktop_end_user_computing/vmware_workstation_player/12_0"
+	],
+	"entity": "vmware_img",
+	"install_sequence": {
+		"get_iso": "wget http://mirror.nsc.liu.se/centos-store/7.0.1406/isos/x86_64/CentOS-7.0-1406-x86_64-Minimal.iso"
+	}
+},
+
+
+}
+

@@ -1,0 +1,80 @@
+
+{
+
+
+"openflow_controller_ip":	"127.0.0.1",
+"openflow_controller_port":	"6653",
+
+
+"ubuntu_netutils_img": {
+
+	"credits": [
+		"https://hub.docker.com/_/ubuntu/"
+	],
+	"entity": "docker_img",
+	"base_img": "ubuntu",
+	"apt": {
+		"net-utils":		"install net-tools",
+		"build-essential":	"install build-essential",
+		"readline":		"install libreadline-dev",
+		"sqlite":		"install sqlite3 libsqlite3-dev",
+		"pciutils":		"install pciutils",
+		"libc":			"install linux-libc-dev",
+		"curses":		"install lib32ncurses5-dev",
+		"wget":			"install wget",
+		"git":			"install git"
+	},
+	"install_sequence": {
+		"fix-linux-link": "ln -sf /usr/src/kernels/`uname -r` /usr/src/linux-`uname -r`"
+	}
+},
+
+
+"openmul_img": {
+
+	"credits": [
+		"https://hub.docker.com/r/kulcloud/openmul/",
+		"http://www.openmul.org/uploads/1/3/2/6/13260234/mul_nbapi_v1.0.pdf"
+	],
+	"entity": "docker_img",
+	"base_img": "kulcloud/openmul:latest",
+	"apt": {
+		"telnet":	"install telnet",
+		"expect":	"install expect",
+		"tcl":		"install tcl"
+	},
+	"install_env": {
+		"openmul_branch":	"master"
+	},
+	"install_sequence": {
+		"force_sync":		"cd /usr/src/openmul; git fetch --all; git reset --hard origin/${openmul_branch}; ./build.sh"
+	}
+},
+
+
+"openmul_container": {
+
+	"credits": [
+		"https://github.com/openmul/openmul"
+	],
+	"entity": "docker_container",
+	"base_img": "openmul_img",
+	"docker_flags": "-d --privileged",
+	"expose_tcp": {
+		"6653":		"6653",
+		"8181":		"8181",
+		"10000":	"10000"
+	},
+	"boot_sequence": {
+		"start_syslogd":	"service rsyslog start",
+		"cd_mul_dir":		"cd /usr/src/openmul/",
+		"init":			"./mul.sh init",
+		"start_l2switch":	"./mul.sh start l2switch",
+		"start_telnet":		"./application/cli/mulcli –V 10000",
+		"start_rest_api":	"./application/nbapi/py-tornado/mulnbapi"
+	}
+}
+
+
+}
+

@@ -1,9 +1,19 @@
 #!/bin/bash
 set -x
 
-deploy_framework_dir=../../deploy
+jdep_install_path=/usr/bin/jdep
+jdep_name=jdep
+jdep_alias=${jdep_install_path}/${jdep_name}
 
-source ${deploy_framework_dir}/do_deploy.sh ./deploy_cfg.json
+
+command -v ${jdep_name} >/dev/null 2>&1 || { source ./.internals/jdep/do_install_jdep.sh; }
+
+if [ -f "${jdep_file}" ]
+then
+        source ${jdep_install_path}/do_deploy.sh
+else
+        echo "${jdep_file} - Nothing to deploy. Aborting."
+fi
 
 set +x
 
