@@ -1,12 +1,17 @@
 #!/bin/bash
 set -x
 
-jdep_install_path=/usr/bin/jdep
-jdep_name=jdep
-jdep_alias=${jdep_install_path}/${jdep_name}
+jdep_install_path=/etc/jdep
+jdep_alias=/usr/bin/jdep
+jdep_cmd=$(readlink -e $0)
 
 
-command -v ${jdep_name} >/dev/null 2>&1 || { source ./.internals/jdep/do_install_jdep.sh; }
+if [ "${jdep_cmd}" == "${jdep_alias}" ]
+then
+	echo "Called from alias."
+else
+	source ./.internals/jdep/do_install_jdep.sh
+fi
 
 if [ -f "${jdep_file}" ]
 then
