@@ -9,9 +9,23 @@ jdep_cmd=$(readlink -e $0)
 function jdep_exit {
 
 	exit_reason=$1
+	echo "-----------------"
 	cat ${jdep_install_path}/.internals/jdep/jdep_msg.json | jq -r ".jdep_exit_msg.${exit_reason}[]"
+	echo "-----------------"
 	set +x
 	exit 1
+}
+
+
+function jdep_execute {
+
+	exec_file=$1
+	if [ -f "${exec_file}" ]
+	then
+		source "${exec_file}"
+	else
+		jdep_exit "corrupt_jdep_installation"
+	fi
 }
 
 
@@ -24,7 +38,7 @@ fi
 
 if [ -f "${jdep_file}" ]
 then
-        source ${jdep_install_path}/do_deploy.sh
+        jdep_execute ${jdep_install_path}/do_deploy.sh
 else
 	jdep_exit "nothing_to_deploy"
 fi

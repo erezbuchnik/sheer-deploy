@@ -1,17 +1,27 @@
 {
 
+"msg_env": {
+        "jdep_repo_url":       "master"
+},
+
 "jdep_exit_msg": {
 
 	"nothing_to_deploy": [
+
 		"Nothing to deploy. Please provide a valid .json file in the '${jdep_file}' environment variable.",
 		"For example, try the following:",
-		" echo '{ \"busybox_deploy\": { ",
+		"    ",
+		" echo '{ \"my_first_jdep\": { ",
 		"        \"entity\": \"docker_deploy\", ",
 		"        \"busybox\": { \"entity\": \"docker_container\", \"base_img\": \"busybox\" } ",
 		"    } }' > ./busybox_deploy.json; ",
 		"    jdep_file=./busybox_deploy.json jdep; ",
-		"    docker ps",
-		"    "
+		"    docker ps"
+	],
+
+	"corrupt_jdep_installation": [
+
+		"jdep installation may be corrupt. Please refer to ${jdep_repo_url} for reinstalling."
 	]
 }
 
