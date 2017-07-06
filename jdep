@@ -6,7 +6,16 @@ jdep_alias=/usr/bin/jdep
 jdep_cmd=$(readlink -e $0)
 
 
-if [ "${jdep_cmd}" == "${jdep_alias}" ]
+function jdep_exit {
+
+	exit_reason=$1
+	cat ${jdep_install_path}/.internals/jdep/jdep_msg.json | jq -r ".jdep_exit_msg.${exit_reason}[]"
+	set +x
+	exit 1
+}
+
+
+if [ "${jdep_cmd}" == "$(readlink -e ${jdep_alias})" ]
 then
 	echo "Called from alias."
 else
@@ -17,7 +26,7 @@ if [ -f "${jdep_file}" ]
 then
         source ${jdep_install_path}/do_deploy.sh
 else
-        echo "${jdep_file} - Nothing to deploy. Aborting."
+	jdep_exit "nothing_to_deploy"
 fi
 
 set +x

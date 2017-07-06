@@ -2,21 +2,12 @@
 set -x
 
 
-function jdep_abort {
-
-	abort_reason=$1
-	jdep_msg_file=${jdep_install_path}/.internals/jdep/jdep_msg.json
-
-	
-}
-
-
-if [ "${jdep_cmd}" != "${jdep_alias}" ]
+if [ "${jdep_cmd}" != "$(readlink -e ${jdep_alias})" ]
 then
         echo >&2 "Installing jdep."
 	rm -rf ${jdep_install_path} ${jdep_alias}
-        install -d ${jdep_install_path}/.internals
-        install -D ./.internals/* ${jdep_install_path}/.internals
+	mkdir -p ${jdep_install_path}
+        cp -r ./.internals ${jdep_install_path}/.internals
         install ./jdep ${jdep_install_path}/jdep
         ln -s ${jdep_install_path}/jdep ${jdep_alias}
 fi
